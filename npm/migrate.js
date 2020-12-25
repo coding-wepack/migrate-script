@@ -1,40 +1,40 @@
 const fs = require('fs');
 const path = require('path');
-const {
-    execSync
-} = require("child_process");
+const { execSync } = require("child_process");
 
 
-fs.readdir(path.join(__dirname, 'node_modules'), (err, list) => {
+const publish = (modulePath)=>{
+    fs.readdir(modulePath, (err, list)=>{
 
-    if (!!err) {
-        console.error(err)
-    }
-
-    list.filter(i => fs.lstatSync(path.join(__dirname, 'node_modules', i)).isDirectory()).forEach(pkgName => {
-
-        const isPkg = fs.existsSync(path.join(__dirname, 'node_modules', pkgName, 'package.json'))
-
-        console.info(isPkg, pkgName)
-
-        if (!isPkg) {
+        if (!! err) {
+            console.error(err)
             return
         }
-
-        console.info(path.join(__dirname, '.npmrc'), path.join(__dirname, 'node_modules', pkgName, '.npmrc'))
-
-        fs.copyFileSync(path.join(__dirname, '.npmrc'), path.join(__dirname, 'node_modules', pkgName, '.npmrc'));
-
-        execSync(`cd ${path.join(__dirname,'node_modules', pkgName)} && npm publish --verbose`, (error, stdout, stderr) => {
-            if (error) {
-                console.log(`error: ${error.message}`);
-                return;
+    
+        list.filter(i=>fs.lstatSync(path.join(modulePath, i)).isDirectory()).forEach(pkgName=>{
+    
+            const isPkg = fs.existsSync(path.join(modulePath, pkgName, 'package.json'))
+    
+            console.info(isPkg, pkgName)
+    
+            if(!isPkg){
+                return
             }
-            if (stderr) {
-                console.log(`stderr: ${stderr}`);
-                return;
+           
+            console.info(path.join(__dirname, '.npmrc'), path.join(modulePath, pkgName, '.npmrc'))
+            
+            fs.copyFileSync(path.join(__dirname, '.npmrc'), path.join(modulePath, pkgName, '.npmrc'));
+    
+            try {
+                execSync(`cd ${path.join(modulePath, pkgName)} && npm install --registry=http://mirrors.cloud.tencent.com/npm/ --production && npm publish --verbose`);
+
+                publish(path.join(modulePath, pkgName, 'node_modules'))
+    
+            } catch(e) {
+                console.error(`[ERROR] upload pkg:${pkgName} failed`)
             }
-            console.log(`stdout: ${stdout}`);
-        });
+        })
     })
-})
+}
+
+publish(path.join(__dirname,'node_modules'))
