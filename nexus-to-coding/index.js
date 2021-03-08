@@ -4,6 +4,8 @@ const fs = require('fs')
 const url = require('url')
 const path = require('path')
 const { execSync } = require('child_process')
+const walkNexus2 = require('./walk-nexus-2')
+
 
 const yargs = require('yargs');
 
@@ -12,6 +14,12 @@ const argv = yargs
         alias: 's',
         description: 'nexus repo url',
         type: 'string',
+    })
+    .option('source-version', {
+        alias: 'sv',
+        description: 'nexus version: nexus-2 or nexus-3',
+        type: 'string',
+        default: 'nexus-2',
     })
     .option('source-username', {
         alias: 'su',
@@ -52,8 +60,7 @@ const coding_username = argv.tu
 const coding_password = argv.tp
 
 
-const nexus_repo_name = url.parse(nexus_repo_url).path.split("/").filter(i=>!!i)[1]
-const nexus_host = url.parse(nexus_repo_url).host
+
 
 
 const download = (source, target) => {
@@ -70,17 +77,47 @@ const download = (source, target) => {
                 pass: nexus_password,
             }
         })
-        .pipe(fs.createWriteStream(target))
         .on('error', ()=>{
             reject()
         })
         .on('end', ()=>{
             reoslve()
         })
+        .pipe(fs.createWriteStream(target))
     })
 }
 
 console.info(`[INFO] started download ${nexus_repo_url}...`)
+console.info(`[INFO] nexus version: ${argv.sv}`)
+
+if (argv.sv === 'nexus-2') {
+    walkNexus2(nexus_repo_url, nexus_username, nexus_password)
+    .then(fileList => {
+        return Promise.all(fileList.map(i => {
+        
+            const target = path.resolve(__dirname, `./${url.parse(i).path}`)
+            console.info("---------------------")
+            console.info(i)
+            console.info(target)
+            return download(i, target)
+    
+        }))
+    })
+    .then(()=>{
+        console.info(`[INFO] started upload to ${coding_repo_url}`)
+
+        const p = path.resolve(__dirname, `./${url.parse(nexus_repo_url).path}`)
+
+        execSync(`java -jar migrate-local-repo-tool.jar -cd "${p}" -t ${coding_repo_url}  -u ${coding_username} -p ${coding_password}`).toString().trim()
+    })
+    return
+}
+
+
+
+
+const nexus_repo_name = url.parse(nexus_repo_url).path.split("/").filter(i=>!!i)[1]
+const nexus_host = url.parse(nexus_repo_url).host
 
 fetch(`http://${nexus_username}:${nexus_password}@${nexus_host}/service/rest/v1/assets?repository=${nexus_repo_name}`, {
     "method": "GET",
@@ -99,5 +136,8 @@ fetch(`http://${nexus_username}:${nexus_password}@${nexus_host}/service/rest/v1/
 
   }).then(()=>{
     console.info(`[INFO] started upload to ${coding_repo_url}`)
-    execSync(`java -jar migrate-local-repo-tool.jar -cd "./repository" -t ${coding_repo_url}  -u ${coding_username} -p ${coding_password}`).toString().trim()
+
+    const p = path.resolve(__dirname, `./${url.parse(nexus_repo_url).path}`)
+
+    execSync(`java -jar migrate-local-repo-tool.jar -cd "${p}" -t ${coding_repo_url}  -u ${coding_username} -p ${coding_password}`).toString().trim()
   });

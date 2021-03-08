@@ -1,2 +1,5 @@
 node_modules
 repository
+content
+migrate-local-repo-tool.jar
+maven-repository-provisioner.log
