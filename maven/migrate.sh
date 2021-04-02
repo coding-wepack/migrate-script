@@ -2,9 +2,9 @@
 
 set -eo pipefail
 
-REPOSITORY_PATH=${REPOSITORY_PATH:-./repository}
-REMOTE_REPO_URL=${REMOTE_REPO_URL:-https://mai-maven.pkg.coding.net/repository/test-manso-repo/maven-test-2}
-USERNAME=${USERNAME:-coding@qq.com}
+REPOSITORY_PATH=${REPOSITORY_PATH:-/Users/chenxinzhou/.m2/repository}
+REMOTE_REPO_URL=${REMOTE_REPO_URL:-http://127.0.0.1:8081/content/repositories/releases/}
+USERNAME=${USERNAME:-admin}
 PASSWORD=${PASSWORD:-coding123}
 
 function doUpload() {

@@ -1,143 +1,109 @@
-const fetch = require('node-fetch')
-const request = require('request')
-const fs = require('fs')
 const url = require('url')
 const path = require('path')
-const { execSync } = require('child_process')
-const walkNexus2 = require('./walk-nexus-2')
+const BlueBirdPromise = require("bluebird")
+const { walkNexus2, walkNexus3 } = require('./walk-nexus')
+const cliProgress = require('cli-progress')
+const urljoin = require('url-join')
+const { upload, download } = require('./utils')
 
+const argv = require('./argv')
 
-const yargs = require('yargs');
-
-const argv = yargs
-    .option('source', {
-        alias: 's',
-        description: 'nexus repo url',
-        type: 'string',
-    })
-    .option('source-version', {
-        alias: 'sv',
-        description: 'nexus version: nexus-2 or nexus-3',
-        type: 'string',
-        default: 'nexus-2',
-    })
-    .option('source-username', {
-        alias: 'su',
-        description: 'nexus repo username',
-        type: 'string',
-    })
-    .option('source-password', {
-        alias: 'sp',
-        description: 'nexus repo password',
-        type: 'string',
-    })
-    .option('target', {
-        alias: 't',
-        description: 'coding repo url',
-        type: 'string',
-    })
-    .option('target-username', {
-        alias: 'tu',
-        description: 'coding repo username',
-        type: 'string',
-    })
-    .option('target-password', {
-        alias: 'tp',
-        description: 'coding repo username',
-        type: 'string',
-    })
-    .help()
-    .alias('help', 'h')
-    .argv
-
-
-const nexus_repo_url = argv.source
-const nexus_username = argv.su
-const nexus_password = argv.sp
+const nexus_repo_url = argv.source 
+const nexus_username = argv.su 
+const nexus_password = argv.sp 
 
 const coding_repo_url = argv.target
-const coding_username = argv.tu
+const coding_username = argv.tu 
 const coding_password = argv.tp
 
-
-
-
-
-const download = (source, target) => {
-    const targetDir = path.dirname(target)
-    
-    if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true })
-    }
-
-    return new Promise((reoslve, reject) => {
-        request(source, {
-            auth: {
-                user: nexus_username,
-                pass: nexus_password,
-            }
-        })
-        .on('error', ()=>{
-            reject()
-        })
-        .on('end', ()=>{
-            reoslve()
-        })
-        .pipe(fs.createWriteStream(target))
-    })
-}
-
-console.info(`[INFO] started download ${nexus_repo_url}...`)
 console.info(`[INFO] nexus version: ${argv.sv}`)
 
-if (argv.sv === 'nexus-2') {
-    walkNexus2(nexus_repo_url, nexus_username, nexus_password)
-    .then(fileList => {
-        return Promise.all(fileList.map(i => {
-        
-            const target = path.resolve(__dirname, `./${url.parse(i).path}`)
-            console.info("---------------------")
-            console.info(i)
-            console.info(target)
-            return download(i, target)
-    
-        }))
-    })
-    .then(()=>{
-        console.info(`[INFO] started upload to ${coding_repo_url}`)
+const walkHandler = argv.sv === 'nexus-2' ? walkNexus2: walkNexus3;
 
-        const p = path.resolve(__dirname, `./${url.parse(nexus_repo_url).path}`)
+const downloadFiles = fileList => {
+    const downloadProgressBar = new cliProgress.SingleBar({
+        format: 'Download Files |' + '{bar}' + '| {percentage}% || {value}/{total} Files || Source: {source}',
+    }, cliProgress.Presets.shades_classic);
 
-        execSync(`java -jar migrate-local-repo-tool.jar -cd "${p}" -t ${coding_repo_url}  -u ${coding_username} -p ${coding_password}`).toString().trim()
+    downloadProgressBar.start(fileList.length, 0)
+
+    let downloadedCount = 0
+
+    return BlueBirdPromise.map(fileList, fileItem => {
+        downloadProgressBar.update(downloadedCount, fileItem)
+        return download(
+            fileItem.source, 
+            fileItem.target,
+            {
+                user: nexus_username,
+                pass: nexus_password
+            }
+        ).then(()=>{
+            downloadedCount ++
+            downloadProgressBar.update(downloadedCount)
+            return Promise.resolve()
+        })
+    }, { concurrency: 10 }).then(()=>{
+        downloadProgressBar.stop()
     })
-    return
 }
 
+const uploadFiles = fileList => {
+    const uploadProgressBar = new cliProgress.SingleBar({
+        format: 'Upload Files |' + '{bar}' + '| {percentage}% || {value}/{total} Files || Target: {target}',
+    }, cliProgress.Presets.shades_classic);
 
+    uploadProgressBar.start(fileList.length, 0)
 
+    let uploadedCount = 0
 
-const nexus_repo_name = url.parse(nexus_repo_url).path.split("/").filter(i=>!!i)[1]
-const nexus_host = url.parse(nexus_repo_url).host
+    return BlueBirdPromise.map(fileList, fileItem => {
 
-fetch(`http://${nexus_username}:${nexus_password}@${nexus_host}/service/rest/v1/assets?repository=${nexus_repo_name}`, {
-    "method": "GET",
-  })
-  .then(res=>res.json())
-  .then(res=>{
-    return Promise.all(res.items.map(i => {
+        uploadProgressBar.update(uploadedCount, fileItem)
+
+        return upload(
+            fileItem.source, 
+            fileItem.target,
+            {
+                user: coding_username,
+                pass: coding_password
+            }
+        ).then(()=>{
+            uploadedCount ++
+            uploadProgressBar.update(uploadedCount)
+            return Promise.resolve()
+        })
+    }, { concurrency: 10 }).then(()=>{
+        uploadProgressBar.stop()
+    })
+}
+
+if (argv.type === 'maven') {
+    walkHandler(nexus_repo_url, nexus_username, nexus_password).then(fileList=>{
+
         
-        const target = path.resolve(__dirname, `./${url.parse(i.downloadUrl).path}`)
-        console.info("---------------------")
-        console.info(i.downloadUrl)
-        console.info(target)
-        return download(i.downloadUrl, target)
+        const downloadFileList = fileList.map(f => {
+            const localPath = path.resolve(__dirname, `./${url.parse(f).path}`)
+            return {
+                target: localPath,
+                source: f
+            }
+        })
 
-    }))
+        const uploadFileList = fileList.map(f => {
+            const source = path.resolve(__dirname, `./${url.parse(f).path}`)
+            // http://127.0.0.1:8081/content/repositories/releases/aopalliance/aopalliance/1.0/aopalliance-1.0.jar -> aopalliance/aopalliance/1.0/aopalliance-1.0.jar
+            const targetPath = f.replace(nexus_repo_url, "")
+            const target = urljoin(coding_repo_url, targetPath)
+            return {
+                target,
+                source,
+            }
+        })
 
-  }).then(()=>{
-    console.info(`[INFO] started upload to ${coding_repo_url}`)
 
-    const p = path.resolve(__dirname, `./${url.parse(nexus_repo_url).path}`)
-
-    execSync(`java -jar migrate-local-repo-tool.jar -cd "${p}" -t ${coding_repo_url}  -u ${coding_username} -p ${coding_password}`).toString().trim()
-  });
+        return downloadFiles(downloadFileList).then(()=>uploadFiles(uploadFileList)).catch(e=>{
+            console.error(e)
+        })
+    })
+}

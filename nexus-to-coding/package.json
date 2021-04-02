@@ -10,9 +10,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bluebird": "^3.7.2",
+    "cli-progress": "^3.9.0",
     "node-fetch": "^2.6.1",
     "node-html-parser": "^3.0.4",
     "request": "^2.88.2",
+    "url-join": "^4.0.1",
     "yargs": "^16.2.0"
   }
 }

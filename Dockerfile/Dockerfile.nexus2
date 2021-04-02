@@ -1,0 +1,13 @@
+FROM ubuntu as builder
+
+RUN apt update
+
+RUN apt install wget -y
+
+RUN wget "https://codingcorp-generic.pkg.coding.net/my-registry-test/generic-file/data.tgz"
+
+RUN tar -xzvf ./data.tgz
+
+FROM codingcorp-docker.pkg.coding.net/coding-artifacts/public/nexus2:latest
+
+COPY --from=builder ./data  /data
