@@ -8,6 +8,6 @@ RUN wget "https://codingcorp-generic.pkg.coding.net/my-registry-test/generic-fil
 
 RUN tar -xzvf ./nexus-data.tgz
 
-FROM codingcorp-docker.pkg.coding.net/coding-artifacts/public/nexus2:latest
+FROM codingcorp-docker.pkg.coding.net/coding-artifacts/public/nexus3:latest
 
 COPY --from=builder ./nexus-data  /nexus-data
