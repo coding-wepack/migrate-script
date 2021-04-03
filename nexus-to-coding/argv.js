@@ -40,7 +40,8 @@ const argv = yargs
     .option('retry', {
         alias: 'r',
         description: 'retry when request failed',
-        type: "boolean"
+        type: "boolean",
+        default: true,
     })
     .option('type', {
         description: 'support: maven',
