@@ -104,6 +104,11 @@ if (argv.type === 'maven') {
 
         return downloadFiles(downloadFileList).then(()=>uploadFiles(uploadFileList)).catch(e=>{
             console.error(e)
+        }).then(()=>{
+            console.info("[INFO] migrate nexus to coding completed")
+            console.info(`[INFO] source repo: ${nexus_repo_url}`)
+            console.info(`[INFO] target repo: ${coding_repo_url}`)
+            console.info(`[INFO] file count: ${fileList.length}`)
         })
     })
 }
