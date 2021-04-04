@@ -11,31 +11,37 @@ const argv = yargs
         alias: 's',
         description: 'nexus repo url',
         type: 'string',
+        require: true,
     })
     .option('source-username', {
         alias: 'su',
         description: 'nexus repo username',
         type: 'string',
+        require: true,
     })
     .option('source-password', {
         alias: 'sp',
         description: 'nexus repo password',
         type: 'string',
+        require: true,
     })
     .option('target', {
         alias: 't',
         description: 'coding repo url',
         type: 'string',
+        require: true,
     })
     .option('target-username', {
         alias: 'tu',
         description: 'coding repo username',
         type: 'string',
+        require: true,
     })
     .option('target-password', {
         alias: 'tp',
         description: 'coding repo username',
         type: 'string',
+        require: true,
     })
     .option('retry', {
         alias: 'r',

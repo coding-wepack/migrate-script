@@ -11,3 +11,5 @@ RUN tar -xzvf ./nexus-data.tgz
 FROM codingcorp-docker.pkg.coding.net/coding-artifacts/public/nexus3:latest
 
 COPY --from=builder ./nexus-data  /nexus-data
+
+USER root

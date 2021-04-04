@@ -12,9 +12,9 @@ const nexus_repo_url = argv.source
 const nexus_username = argv.su 
 const nexus_password = argv.sp 
 
-const coding_repo_url = argv.target
-const coding_username = argv.tu 
-const coding_password = argv.tp
+const coding_repo_url = argv.target 
+const coding_username = argv.tu
+const coding_password = argv.tp 
 
 console.info(`[INFO] nexus version: ${argv.sv}`)
 
@@ -78,9 +78,25 @@ const uploadFiles = fileList => {
     })
 }
 
-if (argv.type === 'maven') {
-    walkHandler(nexus_repo_url, nexus_username, nexus_password).then(fileList=>{
 
+const getMavenWalkRepoUrl = (repoUrl) => {
+    if (argv.sv === 'nexus-2') {
+        return repoUrl
+    }
+
+    // http://127.0.0.1:8081/repository/maven-public/ -> http://127.0.0.1:8081/service/rest/repository/browse/maven-public/
+    const u = url.parse(repoUrl)
+
+    const [layout, repoName] = u.path.split("/").filter(i => !!i)
+
+    return urljoin(`${u.protocol}${u.host}`, "service/rest", layout, "browse", repoName)
+
+}
+
+
+if (argv.type === 'maven') {
+
+    walkHandler(getMavenWalkRepoUrl(nexus_repo_url), nexus_username, nexus_password).then(fileList=>{
         
         const downloadFileList = fileList.map(f => {
             const localPath = path.resolve(__dirname, `./${url.parse(f).path}`)
@@ -91,13 +107,20 @@ if (argv.type === 'maven') {
         })
 
         const uploadFileList = fileList.map(f => {
-            const source = path.resolve(__dirname, `./${url.parse(f).path}`)
-            // http://127.0.0.1:8081/content/repositories/releases/aopalliance/aopalliance/1.0/aopalliance-1.0.jar -> aopalliance/aopalliance/1.0/aopalliance-1.0.jar
-            const targetPath = f.replace(nexus_repo_url, "")
-            const target = urljoin(coding_repo_url, targetPath)
-            return {
-                target,
-                source,
+            try {
+                const source = path.resolve(__dirname, `./${url.parse(f).path}`)
+                // http://127.0.0.1:8081/content/repositories/releases/aopalliance/aopalliance/1.0/aopalliance-1.0.jar -> aopalliance/aopalliance/1.0/aopalliance-1.0.jar
+                const targetPath = f.replace(nexus_repo_url, "")
+
+                const target = urljoin(coding_repo_url, targetPath)
+
+                return {
+                    target,
+                    source,
+                }
+            } catch(e) {
+                console.error(e)
+                console.error(f)
             }
         })
 
