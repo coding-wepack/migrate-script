@@ -106,7 +106,7 @@ if (argv.type === 'maven') {
             }
         })
 
-        const uploadFileList = fileList.map(f => {
+        const uploadFileList = process.env.DOWNLOAD_ONLY === "true" ? [] : fileList.map(f => {
             try {
                 const source = path.resolve(__dirname, `./${url.parse(f).path}`)
                 // http://127.0.0.1:8081/content/repositories/releases/aopalliance/aopalliance/1.0/aopalliance-1.0.jar -> aopalliance/aopalliance/1.0/aopalliance-1.0.jar
@@ -123,9 +123,8 @@ if (argv.type === 'maven') {
                 console.error(f)
             }
         })
-
-
-        return downloadFiles(downloadFileList).then(()=>uploadFiles(uploadFileList)).catch(e=>{
+        
+        return downloadFiles(downloadFileList).then(()=> uploadFiles(uploadFileList)).catch(e=>{
             console.error(e)
         }).then(()=>{
             console.info("[INFO] migrate nexus to coding completed")
@@ -135,3 +134,8 @@ if (argv.type === 'maven') {
         })
     })
 }
+
+process.on('SIGINT', function() {
+    console.log("Caught interrupt signal");
+    process.exit();
+});

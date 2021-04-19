@@ -2,9 +2,7 @@ const request = require('request')
 const fs = require('fs')
 const path = require('path')
 
-const argv = require('./argv')
-
-const retry = argv.retry
+const retry = true
 
 const download = (source, target, auth) => {
     const targetDir = path.dirname(target)
@@ -13,15 +11,23 @@ const download = (source, target, auth) => {
         fs.mkdirSync(targetDir, { recursive: true })
     }
 
-    return new Promise((reoslve, reject) => {
+    return new Promise((resolve, reject) => {
         request(source, {
             auth
         })
         .on('error', (e)=>{
             reject(e)
         })
+        .on('response', function(response) {
+            if(response.statusCode >= 200 && response.statusCode < 400) {
+                resolve()
+                return
+            }
+            console.error(response.statusCode, response.statusMessage)
+            reject(`${response.statusCode} ${response.statusMessage}`)
+        })
         .on('end', ()=>{
-            reoslve()
+            resolve()
         })
         .pipe(fs.createWriteStream(target))
     }).catch((e)=>{
@@ -45,6 +51,13 @@ const upload = (source, target, auth) => {
                 resolve()
                 return
             }
+
+            if(response.statusCode === 409 ) {
+                console.warn(`[WARN] skip upload: ${response.statusCode} ${response.statusMessage}`)
+                resolve()
+                return
+            }
+
             console.error(response.statusCode, response.statusMessage)
             reject(response.statusMessage)
     

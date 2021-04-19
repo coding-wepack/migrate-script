@@ -3,3 +3,4 @@ repository
 content
 migrate-local-repo-tool.jar
 maven-repository-provisioner.log
+pom-tmp/
