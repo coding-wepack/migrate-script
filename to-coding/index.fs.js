@@ -15,6 +15,8 @@ const coding_password = argv.tp
 
 
 const uploadFiles = fileList => {
+
+    console.info("[INFO] started upload files")
     
     const uploadProgressBar = new cliProgress.SingleBar({
         format: 'Upload Files |' + '{bar}' + '| {percentage}% || {value}/{total} Files || Target: {target}',
