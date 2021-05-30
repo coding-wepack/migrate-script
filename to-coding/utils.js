@@ -62,8 +62,12 @@ const upload = (source, target, auth) => {
             reject(response.statusMessage)
     
         }).on('error', function(err) {
-            console.error(err)
-            reject(err)
+          if (retry) {
+            console.info()
+            console.error(`[WARN] upload ${source} to ${target} failed, retring...`)
+            return upload(source, target)
+          }
+          return Promise.reject(e)
         }))
     })
 }
