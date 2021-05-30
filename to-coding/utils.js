@@ -34,7 +34,7 @@ const download = (source, target, auth) => {
         if (retry) {
             console.info()
             console.error(`[WARN] download ${source} to ${target} failed, retring...`)
-            return download(source, target)
+            return download(source, target, auth)
         }
         return Promise.reject(e)
 
@@ -65,7 +65,7 @@ const upload = (source, target, auth) => {
           if (retry) {
             console.info()
             console.error(`[WARN] upload ${source} to ${target} failed, retring...`)
-            return upload(source, target)
+            return upload(source, target, auth)
           }
           return Promise.reject(e)
         }))
