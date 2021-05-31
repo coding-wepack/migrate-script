@@ -32,7 +32,7 @@ const download = (source, target, auth) => {
         .pipe(fs.createWriteStream(target))
     }).catch((e)=>{
         if (retry) {
-            console.info()
+            console.info(e)
             console.error(`[WARN] download ${source} to ${target} failed, retring...`)
             return download(source, target, auth)
         }
@@ -63,7 +63,7 @@ const upload = (source, target, auth) => {
     
         }).on('error', function(err) {
           if (retry) {
-            console.info()
+            console.info(err)
             console.error(`[WARN] upload ${source} to ${target} failed, retring...`)
             return upload(source, target, auth)
           }
