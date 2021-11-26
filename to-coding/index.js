@@ -89,7 +89,7 @@ const getMavenWalkRepoUrl = (repoUrl) => {
 
     const [layout, repoName] = u.path.split("/").filter(i => !!i)
 
-    return urljoin(`${u.protocol}${u.host}`, "service/rest", layout, "browse", repoName)
+    return urljoin(`${u.protocol}${u.host}`, "service/rest", layout, "browse", repoName, "/")
 
 }
 
