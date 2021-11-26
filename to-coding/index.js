@@ -1,5 +1,6 @@
 const url = require('url')
 const path = require('path')
+const _ = require('lodash')
 const BlueBirdPromise = require("bluebird")
 const { walkNexus2, walkNexus3 } = require('./walk-nexus')
 const cliProgress = require('cli-progress')
@@ -8,13 +9,13 @@ const { upload, download } = require('./utils')
 
 const argv = require('./argv')
 
-const nexus_repo_url = argv.source 
-const nexus_username = argv.su 
-const nexus_password = argv.sp 
+const nexus_repo_url = _.trim(argv.source)
+const nexus_username = _.trim(argv.su)
+const nexus_password = _.trim(argv.sp)
 
-const coding_repo_url = argv.target 
-const coding_username = argv.tu
-const coding_password = argv.tp 
+const coding_repo_url = _.trim(argv.target)
+const coding_username = _.trim(argv.tu)
+const coding_password = _.trim(argv.tp)
 
 console.info(`[INFO] nexus version: ${argv.sv}`)
 

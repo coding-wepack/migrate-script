@@ -1,18 +1,19 @@
 {
   "name": "nexus-to-coding",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.6.2",
+  "description": "Nexus 迁移至 CODING 制品库",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["migration", "nexus", "CODING"],
+  "author": "artifacter",
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.7.2",
     "cli-progress": "^3.9.0",
     "glob": "^7.1.6",
+    "lodash": "^4.17.21",
     "node-fetch": "^2.6.1",
     "node-html-parser": "^3.0.4",
     "request": "^2.88.2",
