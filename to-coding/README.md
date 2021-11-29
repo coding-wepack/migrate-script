@@ -1,7 +1,7 @@
 ## Nexus to CODING 
 
 ```
-docker run  -it --rm coding-public-docker.pkg.coding.net/wepack/docker/nexus-to-coding:0.5.0 \
+docker run  -it --rm coding-public-docker.pkg.coding.net/wepack/docker/nexus-to-coding:0.6.2 \
 --source <Nexus 仓库地址，如 http://9.134.66.12:8081/repository/maven-releases/> \
 --source-username <Nexus 访问账号> \
 --source-password <Nexus 访问密码> \
