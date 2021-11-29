@@ -17,13 +17,13 @@ const argv = yargs
         alias: 'su',
         description: 'nexus repo username',
         type: 'string',
-        require: true,
+        require: false,
     })
     .option('source-password', {
         alias: 'sp',
         description: 'nexus repo password',
         type: 'string',
-        require: true,
+        require: false,
     })
     .option('target', {
         alias: 't',

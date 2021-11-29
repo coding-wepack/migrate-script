@@ -12,13 +12,13 @@ const argv = yargs
         alias: 'su',
         description: 'yunxiao repo username',
         type: 'string',
-        require: true,
+        require: false,
     })
     .option('source-password', {
         alias: 'sp',
         description: 'yunxiao repo password',
         type: 'string',
-        require: true,
+        require: false,
     })
     .option('target', {
         alias: 't',
