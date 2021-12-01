@@ -4,6 +4,12 @@ const path = require('path')
 
 const retry = true
 
+const sleep = (seconds) => {
+    const waitUntil = new Date().getTime() + seconds*1000;
+    while(new Date().getTime() < waitUntil)
+        true;
+}
+
 const download = (source, target, auth) => {
     const targetDir = path.dirname(target)
     
@@ -42,6 +48,9 @@ const download = (source, target, auth) => {
 }
 
 const upload = (source, target, auth) => {
+    console.info(`[INFO] Uploading file from [${source}] to [${target}] in 1 second ...`)
+    sleep(1)
+
     return new Promise((resolve, reject)=> {
         fs.createReadStream(source).pipe(request.put(target, {
             auth
@@ -71,9 +80,6 @@ const upload = (source, target, auth) => {
         }))
     })
 }
-
-
-
 
 
 function walk(dir) {
@@ -108,4 +114,5 @@ module.exports = {
     upload,
     download,
     walk,
+    sleep,
 }

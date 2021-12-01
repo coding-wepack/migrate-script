@@ -5,14 +5,14 @@ const _ = require('lodash')
 
 const fetchRepo = (repoUrl, username, password) => {
     if (_.isEmpty(username) && _.isEmpty(password)) {
-        console.info("[INFO] username and password are empty, try to walk by anonymous.")
+        // console.info("[INFO] username and password are empty, try to walk by anonymous.")
         return fetch(repoUrl, {
             "method": "GET"
         })
     } else {
         const secret = `${username}:${password}`
         const base64Secret = `${Buffer.from(secret).toString("base64")}`
-        console.info(`[INFO] source user secret: [${secret}], base64: [${base64Secret}]`)
+        // console.info(`[INFO] source user secret: [${secret}], base64: [${base64Secret}]`)
 
         return fetch(repoUrl, {
             "method": "GET",
